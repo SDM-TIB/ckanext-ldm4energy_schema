@@ -19,10 +19,10 @@
     <h2>{{ _('Additional Information') }}</h2>
     <table class="table table-striped table-bordered table-condensed" data-module="table-toggle-more">
       <thead>
-              <tr>
-                <th scope="col">{{ _('Field') }}</th>
-                <th scope="col">{{ _('Value') }}</th>
-              </tr>
+        <tr>
+          <th scope="col">{{ _('Field') }}</th>
+          <th scope="col">{{ _('Value') }}</th>
+        </tr>
       </thead>
       <tbody>
 
@@ -45,28 +45,55 @@
         </tr>
       {%- endblock -%}
 
+      {% set excluded_fields = ('url','name','description','format') %}
+      {%- for field in schema.resource_fields -%}
+        {% if field.field_name not in excluded_fields %}
 
+          {% if field.get('repeating_subfields') %}
+            {% set ns = namespace(has_content=false) %}
+            {% for entry in res.get(field.field_name, []) %}
+              {% for sf in field.repeating_subfields %}
+                {% if sf.get('preset') != 'hidden_value' %}
+                  {% set v = entry.get(sf.field_name) %}
+                  {% if sf.get('repeating_subfields') %}
+                    {% for nested_entry in (v or []) %}
+                      {% for nsf in sf.repeating_subfields %}
+                        {% if nsf.get('preset') != 'hidden_value' %}
+                          {% set nv = nested_entry.get(nsf.field_name) %}
+                          {% if nv is not none and nv != '' and nv != [] %}
+                            {% set ns.has_content = true %}
+                          {% endif %}
+                        {% endif %}
+                      {% endfor %}
+                    {% endfor %}
+                  {% else %}
+                    {% if v is not none and v != '' and v != [] %}
+                      {% set ns.has_content = true %}
+                    {% endif %}
+                  {% endif %}
+                {% endif %}
+              {% endfor %}
+            {% endfor %}
+          {% else %}
+            {% set ns = namespace(has_content=res.get(field.field_name)) %}
+          {% endif %}
 
+          {% if ns.has_content %}
+            <tr>
+              <th scope="row" class="dataset-label">{{
+                h.scheming_language_text(field.label) }}</th>
+              <td class="dataset-details"{%
+                if field.display_property %} property="{{ field.display_property
+                }}"{% endif %}>{%- snippet 'scheming/snippets/display_field.html',
+                field=field, data=res, schema=schema -%}</td>
+            </tr>
+          {% endif %}
 
-{% set excluded_fields = ('url','name','description','format') %}
-{%- for field in schema.resource_fields -%}
-{% if field.field_name not in excluded_fields and res.get(field.field_name)%}
-    <tr>
-        <th scope="row" class="dataset-label">{{
-          h.scheming_language_text(field.label) }}</th>
-        <td class="dataset-details"{%
-          if field.display_property %} property="{{ field.display_property
-          }}"{% endif %}>{%- snippet 'scheming/snippets/display_field.html',
-          field=field, data=res, schema=schema -%}</td>
-      </tr>
-{% endif %}
-{% endfor %}
+        {% endif %}
+      {%- endfor -%}
 
-
-
-    </tbody>
+      </tbody>
     </table>
   </div>
-
 
 {% endblock %}

@@ -2,27 +2,85 @@
 
 {% block subfield_display %}
   {% for field_data in fields %}
-    <div class="panel panel-default">
+
+    {#- Pre-scan: determine whether this entry has any visible, non-empty
+        value.  We handle two levels of nesting:
+          1. A plain subfield   – check its value directly.
+          2. A nested repeating subfield – walk its entries and check each
+             visible leaf field.  A value like [{"hidden_crs":"EPSG:4326"}]
+             must NOT count as content.  -#}
+    {% set ns = namespace(has_content=false) %}
+    {% for subfield in field.repeating_subfields %}
+      {% if subfield.preset != 'hidden_value' %}
+        {% set value = field_data.get(subfield.field_name) %}
+        {% if subfield.get('repeating_subfields') %}
+          {% for nested_entry in (value or []) %}
+            {% for nsf in subfield.repeating_subfields %}
+              {% if nsf.get('preset') != 'hidden_value' %}
+                {% set nv = nested_entry.get(nsf.field_name) %}
+                {% if nv is not none and nv != '' and nv != [] %}
+                  {% set ns.has_content = true %}
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          {% endfor %}
+        {% else %}
+          {% if value is not none and value != '' and value != [] %}
+            {% set ns.has_content = true %}
+          {% endif %}
+        {% endif %}
+      {% endif %}
+    {% endfor %}
+
+    {% if ns.has_content %}
+      <div class="panel panel-default">
         <header class="panel-heading">
           {{ h.scheming_language_text(field.repeating_label or field.label) }} {{ loop.index }}
         </header>
-      <div class="panel-body">
-        <dl class="scheming-subfield-list">
-          {% for subfield in field.repeating_subfields %}
-            <dt class="dataset-label">
-              {{ h.scheming_language_text(subfield.label) }}
-            </dt>
-            <dd>
-            {%- snippet 'scheming/snippets/display_field.html',
-              field=subfield,
-              data=field_data,
-              entity_type=entity_type,
-              object_type=object_type
-            -%}
-            </dd>
-          {% endfor %}
-        </dl>
+        <div class="panel-body">
+          <dl class="scheming-subfield-list">
+            {% for subfield in field.repeating_subfields %}
+              {% if subfield.preset != 'hidden_value' %}
+                {% set value = field_data.get(subfield.field_name) %}
+
+                {#- Per-subfield show check, mirroring the pre-scan logic. -#}
+                {% set ns_sf = namespace(show=false) %}
+                {% if subfield.get('repeating_subfields') %}
+                  {% for nested_entry in (value or []) %}
+                    {% for nsf in subfield.repeating_subfields %}
+                      {% if nsf.get('preset') != 'hidden_value' %}
+                        {% set nv = nested_entry.get(nsf.field_name) %}
+                        {% if nv is not none and nv != '' and nv != [] %}
+                          {% set ns_sf.show = true %}
+                        {% endif %}
+                      {% endif %}
+                    {% endfor %}
+                  {% endfor %}
+                {% else %}
+                  {% if value is not none and value != '' and value != [] %}
+                    {% set ns_sf.show = true %}
+                  {% endif %}
+                {% endif %}
+
+                {% if ns_sf.show %}
+                  <dt class="dataset-label">
+                    {{ h.scheming_language_text(subfield.label) }}
+                  </dt>
+                  <dd>
+                    {%- snippet 'scheming/snippets/display_field.html',
+                      field=subfield,
+                      data=field_data,
+                      entity_type=entity_type,
+                      object_type=object_type
+                    -%}
+                  </dd>
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          </dl>
+        </div>
       </div>
-    </div>
+    {% endif %}
+
   {% endfor %}
 {% endblock %}

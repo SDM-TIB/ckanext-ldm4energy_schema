@@ -1,0 +1,9 @@
+{# scheming/display_snippets/datetime_local.html
+   Display a YYYY-MM-DDTHH:MM:SS value in a human-readable format.
+   'data' is the resource/package dict, 'field' is the scheming field def. #}
+
+{% set value = data[field.field_name] if field.field_name in data else '' %}
+{% if value %}
+  <span>{{ value | replace('T', ' ') }}</span>
+{% endif %}
+

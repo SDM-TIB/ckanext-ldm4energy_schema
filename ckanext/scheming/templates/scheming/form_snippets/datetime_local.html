@@ -1,0 +1,64 @@
+{# datetime-local input storing/expecting YYYY-MM-DDTHH:MM:SS
+   - step="1" enables the seconds field in all browsers
+   - value is passed as-is if already in YYYY-MM-DDTHH:MM:SS format
+   - if value is missing seconds (YYYY-MM-DDTHH:MM), we pad them        #}
+
+{% set raw_value  = data.get(field.field_name, '') or '' %}
+{% set label_text = h.scheming_language_text(field.label) %}
+{% set field_id   = 'field-' ~ field.field_name %}
+
+{# Pad missing seconds so flatpickr parses the stored value correctly #}
+{% if raw_value | length == 16 %}
+  {% set display_value = raw_value ~ ':00' %}
+{% else %}
+  {% set display_value = raw_value %}
+{% endif %}
+
+{# flatpickr — safe to include multiple times, browser deduplicates   #}
+<link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<label class="control-label" for="{{ field_id }}">{{ label_text }}{% if field.get('required') %} <span title="{{ _('This field is required') }}" class="control-required">*</span>{% endif %}</label>
+
+<div class="controls">
+  <input
+    type="text"
+    id="{{ field_id }}"
+    name="{{ field.field_name }}"
+    value="{{ display_value }}"
+    class="form-control"
+    placeholder="YYYY-MM-DDTHH:MM:SS"
+    autocomplete="off"
+    {% if field.get('required') %}required{% endif %}
+  />
+
+  {% set help_text = h.scheming_language_text(field.get('help_text', '')) %}
+  {% if help_text %}
+    <div class="info-block">
+      <i class="fa fa-info-circle"></i>
+      {{ help_text }}
+    </div>
+  {% endif %}
+</div>
+
+<script>
+(function () {
+  function initPicker() {
+    if (typeof flatpickr === 'undefined') {
+      return setTimeout(initPicker, 50);
+    }
+    flatpickr(document.getElementById('{{ field_id }}'), {
+      enableTime:    true,
+      enableSeconds: true,
+      time_24hr:     true,
+      /* Output format matches our storage format exactly */
+      dateFormat:    'Y-m-d\\TH:i:S',
+      /* Let users type directly as well as use the picker */
+      allowInput:    true
+    });
+  }
+  initPicker();
+}());
+</script>
+

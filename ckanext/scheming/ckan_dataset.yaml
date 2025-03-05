@@ -9,22 +9,27 @@ dataset_fields:
 - field_name: title
   label: Title
   preset: title
-  form_placeholder: eg. A descriptive title
+  form_placeholder: e.g. A descriptive title
 
 - field_name: name
   label: URL
   preset: dataset_slug
-  form_placeholder: eg. my-dataset
+  form_placeholder: e.g. my-dataset
 
 - field_name: notes
   label: Description
   form_snippet: markdown.html
-  form_placeholder: eg. Some useful notes about the data
+  form_placeholder: e.g. Some useful notes about the data
 
 - field_name: tag_string
   label: Tags
   preset: tag_string_autocomplete
   form_placeholder: eg. economy, mental health, government
+
+- field_name: keywords
+  label: Keywords
+  preset: multiple_text
+  form_placeholder: e.g. example, ODbL-1.0, NFDI4Energy
 
 - field_name: license_id
   label: License
@@ -47,6 +52,7 @@ dataset_fields:
   form_placeholder: https://doi.org/10.48550/arXiv.2008.07176
   display_property: datacite:isDescribedBy
   display_snippet: link.html
+  validators: ignore_missing unicode_safe doi_to_url
 
 - field_name: citation
   label: Citation
@@ -56,11 +62,6 @@ dataset_fields:
 - field_name: link_orkg
   label: Link to ORKG
   display_snippet: link.html
-
-- field_name: version
-  label: Version
-  validators: ignore_missing unicode package_version_validator
-  form_placeholder: '1.0'
 
 - field_name: author
   label: Author
@@ -82,11 +83,13 @@ dataset_fields:
     - field_name: extra_author
       label: Author
       required: false
+      validators: ignore_missing
       form_snippet: author.html
     - field_name: orcid
       label: ORCID
       form_placeholder: 'ORCID e.g. 0000-0002-1825-0097'
       form_snippet: orcid.html
+      validators: ignore_missing
 
 - field_name: author_email
   label: Author Email
@@ -107,10 +110,18 @@ dataset_fields:
   display_snippet: email.html
   display_email_name_field: maintainer
 
-- field_name: version_note
-  label: Version Note
-  validators: ignore_missing unicode package_version_validator
-  form_placeholder: 'Initial version.'
+- field_name: version_info
+  label: Version Information
+  repeating_subfields:
+  - field_name: version
+    label: Version
+    required: false
+    validators: ignore_missing unicode package_version_validator
+    form_placeholder: '1.0'
+  - field_name: version_note
+    label: Version Note
+    validators: ignore_missing unicode package_version_validator
+    form_placeholder: 'Initial version.'
 
 - field_name: language
   label: Language
@@ -151,10 +162,12 @@ dataset_fields:
 - field_name: start_date
   label: Start Date
   form_placeholder: 'e.g. start date of the time period'
+  validators: ignore_missing
 
 - field_name: end_date
   label: End Date
   form_placeholder: 'e.g. end date of the time period'
+  validators: ignore_missing
 
 - field_name: services_used_list
   label: Related Services
@@ -207,6 +220,11 @@ resource_fields:
   label: Format
   preset: resource_format_autocomplete
 
+- field_name: encoding
+  label: Encoding
+  help_text: Specifies the character encoding of the resource's data file. The default is 'UTF-8'. The values should be one of the 'Preferred MIME Names'.
+  form_placeholder: 'e.g. UTF-8'
+
 - field_name: rights
   label: Distribution Rights
   form_placeholder: 'e.g. '
@@ -218,4 +236,269 @@ resource_fields:
 - field_name: media
   label: Media Type
   form_placeholder: 'e.g. Files, Compress files, Videos, etc.'
+
+- field_name: publication_date
+  label: Publication Date
+  form_placeholder: '2025-10-25'
+  preset: date
+
+- field_name: spatial
+  label: Spatial Information
+  single: true
+  repeating_subfields:
+  - field_name: spatial_hidden
+    label: hidden
+    preset: hidden_value
+  - field_name: location
+    label: Location
+    single: true
+    required: false
+    repeating_subfields:
+    - field_name: address
+      label: Address
+      required: false
+    - field_name: latitude
+      label: Latitude
+    - field_name: Longitude
+      label: Longitude
+  - field_name: extend
+    label: Extend
+    single: true
+    required: false
+    repeating_subfields:
+    - field_name: extend_name
+      label: Name
+      required: false
+    - field_name: extend_resolution_value
+      label: Resolution Value
+    - field_name: extend_resolution_unit
+      label: Resolution Unit
+    - field_name: extend_bounding_box
+      label: Bounding Box
+    - field_name: extend_crs
+      label: CRS
+
+- field_name: temporal
+  label: Temporal Information
+  single: true
+  repeating_subfields:
+  - field_name: temporal_hidden
+    label: hidden
+    preset: hidden_value
+  - field_name: temporal_reference_date
+    label: Reference Date
+  - field_name: temporal_timeseries
+    label: Timeseries
+    required: false
+    repeating_subfields:
+      - field_name: temporal_timeseries_start
+        label: Start
+        form_snippet: scheming/form_snippets/datetime_local.html
+        display_snippet: scheming/display_snippets/datetime_local.html
+        validators: ignore_missing normalize_datetime
+      - field_name: temporal_timeseries_end
+        label: End
+        form_snippet: scheming/form_snippets/datetime_local.html
+        display_snippet: scheming/display_snippets/datetime_local.html
+        validators: ignore_missing normalize_datetime
+      - field_name: temporal_timeseries_resolution_value
+        label: Resolution Value
+        form_placeholder: 'e.g. 15'
+      - field_name: temporal_timeseries_resolution_unit
+        label: Resolution Unit
+        form_placeholder: 'e.g. min'
+      - field_name: temporal_timeseries_alignment
+        label: Alignment
+        help_text: 'An indicator of whether timestamps in a time series are to the left, right or in the centre.'
+        form_placeholder: 'e.g. left'
+      - field_name: temporal_timeseries_aggregation_type
+        label: Aggregation Type
+        help_text: An indicator of whether the values are a sum, an average or a current value.
+        form_placeholder: 'e.g. current'
+
+- field_name: sources
+  label: Sources
+  repeating_subfields:
+  - field_name: sources_title
+    label: title
+    required: false
+  - field_name: sources_authors
+    label: Authors
+    display_snippet: repeating_subfields_authors.html
+    repeating_subfields:
+      - field_name: sources_author_name
+        label: Author Name
+        required: false
+        validators: ignore_missing
+        form_snippet: author.html
+      - field_name: sources_author_orcid
+        label: ORCID
+        form_placeholder: 'ORCID e.g. 0000-0002-1825-0097'
+        form_snippet: orcid.html
+        validators: ignore_missing
+  - field_name: sources_description
+    label: Description
+  - field_name: sources_publication_year
+    label: Publication Year
+  - field_name: sources_path
+    label: Path
+    help_text: A DOI or link to the original source.
+  - field_name: sources_licenses
+    label: Source Licenses
+    repeating_subfields:
+      - field_name: sources_licenses_name
+        label: Name
+        help_text: 'The SPDX identifier.'
+        form_placeholder: 'e.g. ODbL-1.0'
+      - field_name: sources_licenses_title
+        label: Title
+        help_text: The official (human-readable) title of the license.
+        form_placeholder: 'e.g. Open Data Commons Open Database License 1.0'
+      - field_name: sources_licenses_path
+        label: Path
+        help_text: 'A link or path to the license text.'
+        form_placeholder: 'e.g. opendatacommons.org/licenses/odbl/1-0/index.html'
+      - field_name: sources_licenses_instruction
+        label: Instruction
+        help_text: 'A short description of rights and obligations. The use of tldrlegal.com is recommended.'
+        form_placeholder: 'You are free to share and change, but you must attribute, and share derivations under the same license. See tldrlegal.com for further information.'
+      - field_name: sources_licenses_attribution
+        label: Attribution
+        help_text: 'A copyright owner of the source. Must be provided if attribution licenses are used.'
+        from_placeholder: 'e.g. © Intergovernmental Panel on Climate Change 2023'
+      - field_name: sources_licenses_copyright_statement
+        label: Copyright Statement
+        help_text: 'A link or path that proves that the source or data has the appropriate license. This can be a page number or website imprint.'
+        form_placeholder: 'e.g. www.ipcc.ch/copyright'
+
+- field_name: licenses
+  label: Licenses
+  repeating_subfields:
+    - field_name: licenses_name
+      label: Name
+      help_text: 'The SPDX identifier.'
+      form_placeholder: 'e.g. ODbL-1.0'
+    - field_name: licenses_title
+      label: Title
+      help_text: The official (human-readable) title of the license.
+      form_placeholder: 'e.g. Open Data Commons Open Database License 1.0'
+    - field_name: licenses_path
+      label: Path
+      help_text: 'A link or path to the license text.'
+      form_placeholder: 'e.g. opendatacommons.org/licenses/odbl/1-0/index.html'
+    - field_name: licenses_instruction
+      label: Instruction
+      help_text: 'A short description of rights and obligations. The use of tldrlegal.com is recommended.'
+      form_placeholder: 'You are free to share and change, but you must attribute, and share derivations under the same license. See tldrlegal.com for further information.'
+    - field_name: licenses_attribution
+      label: Attribution
+      help_text: 'A copyright owner of the source. Must be provided if attribution licenses are used.'
+      form_placeholder: 'e.g. © Intergovernmental Panel on Climate Change 2023'
+    - field_name: licenses_copyright_statement
+      label: Copyright Statement
+      help_text: 'A link or path that proves that the source or data has the appropriate license. This can be a page number or website imprint.'
+      form_placeholder: 'e.g. www.ipcc.ch/copyright'
+
+- field_name: contributors
+  label: Contributors
+  repeating_subfields:
+    - field_name: contributors_title
+      label: Title
+      help_text: 'A full name of the contributor.'
+    - field_name: contributors_path
+      label: Path
+      help_text: 'A qualified link or path pointing to a relevant location online for the contributor. This can be the GitHub page or ORCID.'
+    - field_name: contributors_organization
+      label: Organization
+      help_text: 'A string describing the organization this contributor is affiliated to. This can be relevant for the copyright.'
+    - field_name: contributors_roles
+      label: Roles
+      preset: multiple_text
+      help_text: 'An array describing the roles of the contributor. A role is recommended to follow the established vocabulary, i.e. DataCite Metadata Schema contributorRole. Useful roles to indicate are, e.g. DataCollector, ContactPerson, and DataCurator.'
+      form_placeholder: 'DataCollector'
+    - field_name: contributors_date
+      label: Date
+      preset: date
+      help_text: 'The date of the contribution.'
+    - field_name: contributors_object
+      label: Object
+      help_text: 'The target of the contribution. This can be the data, the metadata or both (data and metadata).'
+      form_placeholder: 'e.g. data and metadata'
+    - field_name: contributors_comment
+      label: Comment
+      help_text: 'A free-text commentary on what has been done.'
+
+- field_name: schema
+  label: Schema
+  single: true
+  repeating_subfields:
+    - field_name: schema_hidden
+      label: hidden
+      preset: hidden_value
+    - field_name: schema_fields
+      label: Fields
+      help_text: 'An array of objects that describes a field (column) and its detailed information.'
+      repeating_subfields:
+        - field_name: fields_name
+          label: Name
+        - field_name: fields_description
+          label: Description
+        - field_name: fields_type
+          label: Type
+          help_text: 'The data type of the field. In case of a geom column in a database, also indicate the shape and CRS.'
+        - field_name: fields_nullable
+          label: Nullable
+          preset: select
+          choices:
+          - value: True
+            label: Nullable
+          - value: False
+            label: Not Nullable
+          help_text: 'A boolean key to specify that a column can be nullable. True is the default value.'
+          validators: ignore_missing
+        - field_name: fields_unit
+          label: Unit
+          help_text: The unit of a field. If it does not apply, use 'null'. If the unit is given in a separate field, reference this field (e.g. 'unit'). Use a space between numbers and units (100 m).
+        - field_name: fields_about
+          label: 'is About'
+          repeating_subfields:
+          - field_name: fields_about_name
+            label: Name
+            help_text: 'The class label of the ontology term.'
+            form_placeholder: 'e.g. wind energy converting unit'
+          - field_name: fields_about_id
+            label: Ontology Link
+            help_text: 'The path of the ontology term (IRI).'
+            form_placeholder: 'e.g. https://openenergyplatform.org/ontology/oeo/OEO_00000044'
+        - field_name: fields_ref
+          label: 'Value Reference'
+          repeating_subfields:
+          - field_name: fields_ref_value
+            label: Value
+            help_text: 'The name of the value in the column.'
+            form_placeholder: 'e.g. onshore'
+          - field_name: fields_ref_name
+            label: Name
+            help_text: 'The class label of the ontology term in the column.'
+            form_placeholder: 'e.g. onshore wind farm'
+          - field_name: fields_ref_id
+            label: Ontology Link
+            help_text: 'The path of the ontology term (IRI) in the column.'
+            form_placeholder: 'e.g. https://openenergyplatform.org/ontology/oeo/OEO_00000311'
+    - field_name: schema_dialect
+      label: Dialect
+      help_text: The Dialect defines a simple format for describing the various dialects of CSV files in a language-independent manner. In a database, the values in the fields are 'null'.
+      single: true
+      repeating_subfields:
+      - field_name: dialect_hidden
+        label: hidden
+        preset: hidden_value
+      - field_name: dialect_delimiter
+        label: Delimiter
+        help_text: The delimiter specifies the character sequence which should separate fields (columns). Common characters are ',' (comma), ';' (semicolon), '.' (point) and '\t' (tab).
+        form_placeholder: 'e.g. ,'
+      - field_name: dialect_ds
+        label: Decimal Separator
+        help_text: The symbol used to separate the integer part from the fractional part of a number written in decimal form. Depending on language and region this symbol can be '.' or ','.
+        form_placeholder: 'e.g. .'
 

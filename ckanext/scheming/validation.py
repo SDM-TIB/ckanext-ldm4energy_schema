@@ -2,6 +2,7 @@ import json
 import datetime
 from collections import defaultdict
 import itertools
+import re
 
 import pytz
 import six
@@ -43,6 +44,34 @@ def scheming_validator(fn):
     """
     fn.is_a_scheming_validator = True
     return fn
+
+
+@scheming_validator
+@register_validator
+def doi_to_url(field, schema):
+    """Normalize a DOI field to a full https://doi.org/... URL.
+
+    Accepts either a bare DOI (10.1234/abcd) or an already-complete
+    URL, and always returns a full URL.
+    """
+    def validator(key, data, errors, context):
+        value = data[key]
+
+        if not value:
+            return value
+
+        value = value.strip()
+
+        if value.startswith('http://') or value.startswith('https://'):
+            return value
+
+        # strip an optional leading "doi:" prefix some users type
+        if value.lower().startswith('doi:'):
+            value = value[4:].strip()
+
+        return 'https://doi.org/' + value
+
+    return validator
 
 
 @scheming_validator
@@ -563,6 +592,8 @@ def scheming_multiple_text(field, schema):
         if (data[key] is missing or data[key] == '[]') and field.get('required'):
             errors[key].append(_('Missing value'))
             raise StopOnError
+        if data[key] is missing or data[key] == '[]':
+            data[key] = ''  # fix insert of missing into DB
 
     return _scheming_multiple_text
 
@@ -581,3 +612,42 @@ def repeating_text_output(value):
         return json.loads(value)
     except ValueError:
         return [value]
+
+
+@scheming_validator
+@register_validator
+def normalize_datetime(field, schema):
+    """
+    Scheming validator factory for YYYY-MM-DDTHH:MM:SS datetime fields.
+    Called by scheming as normalize_datetime(field, schema) → returns
+    the actual validator function that receives (value, context).
+    """
+    def validator(value, context=None):
+        # Let ignore_missing handle empty/None
+        if value is None or value == '':
+            return value
+
+        # Guard against non-string values
+        if not isinstance(value, str):
+            try:
+                value = str(value)
+            except Exception:
+                raise Invalid(_('Invalid datetime value'))
+
+        value = value.strip()
+
+        # Already correct format
+        if re.fullmatch(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}', value):
+            return value
+
+        # Missing seconds — pad them
+        if re.fullmatch(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}', value):
+            return value + ':00'
+
+        raise Invalid(
+            _('Invalid datetime format. Expected YYYY-MM-DDTHH:MM:SS, got: {}')
+            .format(value)
+        )
+
+    return validator
+
