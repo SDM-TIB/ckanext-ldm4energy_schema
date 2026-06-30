@@ -3,6 +3,25 @@ dataset_type: dataset
 about: A reimplementation of the default CKAN dataset schema
 about_url: http://github.com/ckan/ckanext-scheming
 
+sections:
+  - section_id: spatial_sec
+    title: Spatial Information
+    subtitle: Extend your resource with spatial information
+  - section_id: temporal_sec
+    title: Temporal Information
+    subtitle: Extend your resource with temporal information
+  - section_id: sources_sec
+    title: Sources
+    subtitle: Extend your resource with information about its sources
+  - section_id: licenses_sec
+    title: Licenses
+    subtitle: Extend your resource with license information
+  - section_id: contributors_sec
+    title: Contributors
+    subtitle: Extend your resource with information about its contributors
+  - section_id: schema_sec
+    title: Schema
+    subtitle: Extend your resource with information about its schema
 
 dataset_fields:
 
@@ -244,6 +263,7 @@ resource_fields:
 
 - field_name: spatial
   label: Spatial Information
+  section_id: spatial_sec
   single: true
   repeating_subfields:
   - field_name: spatial_hidden
@@ -280,6 +300,7 @@ resource_fields:
 
 - field_name: temporal
   label: Temporal Information
+  section_id: temporal_sec
   single: true
   repeating_subfields:
   - field_name: temporal_hidden
@@ -318,6 +339,7 @@ resource_fields:
 
 - field_name: sources
   label: Sources
+  section_id: sources_sec
   repeating_subfields:
   - field_name: sources_title
     label: title
@@ -373,6 +395,7 @@ resource_fields:
 
 - field_name: licenses
   label: Licenses
+  section_id: licenses_sec
   repeating_subfields:
     - field_name: licenses_name
       label: Name
@@ -401,6 +424,7 @@ resource_fields:
 
 - field_name: contributors
   label: Contributors
+  section_id: contributors_sec
   repeating_subfields:
     - field_name: contributors_title
       label: Title
@@ -430,6 +454,7 @@ resource_fields:
 
 - field_name: schema
   label: Schema
+  section_id: schema_sec
   single: true
   repeating_subfields:
     - field_name: schema_hidden
@@ -501,4 +526,3 @@ resource_fields:
         label: Decimal Separator
         help_text: The symbol used to separate the integer part from the fractional part of a number written in decimal form. Depending on language and region this symbol can be '.' or ','.
         form_placeholder: 'e.g. .'
-
