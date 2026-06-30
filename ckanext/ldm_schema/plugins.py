@@ -13,6 +13,27 @@ STOP_UPDATE = True
 log = logging.getLogger(__name__)
 
 
+def doi_to_url(value):
+    """Normalize a DOI field to a full https://doi.org/... URL.
+
+    Accepts either a bare DOI (10.1234/abcd) or an already-complete
+    URL, and always returns a full URL.
+    """
+    if not value:
+        return value
+
+    value = value.strip()
+
+    if value.startswith('http://') or value.startswith('https://'):
+        return value
+
+    # strip an optional leading "doi:" prefix some users type
+    if value.lower().startswith('doi:'):
+        value = value[4:].strip()
+
+    return 'https://doi.org/' + value
+
+
 def get_paper_link_by_doi(doi):
     if "https://doi.org/" in doi:
         doi = doi.replace("https://doi.org/", "")
@@ -133,6 +154,7 @@ class LDMSchemaPlugin(p.SingletonPlugin):
             'scheming_get_services_for_dataset_display': helpers.scheming_get_services_for_dataset_display,
             'scheming_get_datasets_for_service_display': helpers.scheming_get_datasets_for_service_display,
             'is_doi_plugin_enabled': helpers.is_doi_plugin_enabled,
+            'scheming_get_section': helpers.scheming_get_section,
         }
 
     # IClick
